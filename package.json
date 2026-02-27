@@ -1,0 +1,35 @@
+{
+  "name": "test-gen",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AI test generator for any codebase",
+  "bin": {
+    "test-gen": "./bin/gen.js"
+  },
+  "scripts": {
+    "start": "node bin/gen.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "testing",
+    "ai",
+    "test-generator",
+    "claude",
+    "jest",
+    "vitest",
+    "pytest"
+  ],
+  "author": "NickCirv <nick@cirvgreen.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NickCirv/test-gen.git"
+  }
+}
