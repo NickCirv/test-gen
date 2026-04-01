@@ -1,3 +1,5 @@
+![Banner](banner.svg)
+
 # test-gen
 
 AI-powered test generator that reads your source files and writes complete, runnable tests — supports Jest, Vitest, Mocha, and pytest.
