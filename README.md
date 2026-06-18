@@ -1,42 +1,24 @@
-![Banner](banner.svg)
+![test-gen — AI-powered test generator for JS, TS, and Python. Point at a source file, get a complete runnable test suite.](assets/banner.png)
 
-# test-gen
+<div align="center">
 
-AI-powered test generator that reads your source files and writes complete, runnable tests — supports Jest, Vitest, Mocha, and pytest.
+**Point at a source file. Get a complete, runnable test suite — framework auto-detected, every export covered.**
 
-<p align="center">
-  <img src="https://img.shields.io/npm/v/test-gen.svg" alt="npm version" />
-  <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg" alt="node >= 18" />
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license" />
-</p>
+![license](https://img.shields.io/badge/license-MIT-blue?labelColor=0B0A09)
+![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?labelColor=0B0A09)
+![frameworks](https://img.shields.io/badge/frameworks-Jest%20%7C%20Vitest%20%7C%20Mocha%20%7C%20pytest-8B92F6?labelColor=0B0A09)
+![powered by](https://img.shields.io/badge/powered%20by-Claude%20Haiku-8B92F6?labelColor=0B0A09)
 
-## Why
+</div>
 
-Writing tests is the task everyone knows matters but nobody wants to do. `test-gen` reads your source file, detects your test framework from `package.json` or config files, extracts every exported function and class method, and uses Claude to generate complete test suites — happy paths, edge cases, and error conditions included.
+---
 
-No templates, no placeholders. The output is copy-paste ready, or write it directly to a file.
+Writing tests is the task everyone knows matters but nobody wants to do. `test-gen` reads your source file, detects your test framework from `package.json` or config files, extracts every exported function and class method, and uses Claude Haiku to generate complete test suites — happy paths, edge cases, and error conditions included.
 
-## Quick Start
-
-```bash
-npx test-gen src/utils.js
-npx test-gen src/api/user.ts --output tests/user.test.ts
-npx test-gen app/services/payment.py
-```
-
-## What It Does
-
-- Detects language from file extension — JavaScript, TypeScript, Python
-- Walks up the directory tree to detect your test framework (Jest, Vitest, Mocha, pytest)
-- Extracts all exported named functions, arrow functions, and classes (including methods)
-- Loads existing test file if present — avoids generating duplicate tests
-- Sends source + export map to Claude Haiku with framework-specific guidance
-- Returns complete, runnable test code in the correct format for your framework
-
-## Example Output
+No templates, no config, no placeholders. If a test file already exists, it loads it first and avoids generating duplicates. The output is copy-paste ready, or write it directly to a file with `--output`.
 
 ```
-$ npx test-gen src/analyzer.js
+$ npx github:NickCirv/test-gen src/analyzer.js
 
 Detected: javascript / vitest
 
@@ -65,34 +47,63 @@ describe('detectLanguage', () => {
 })
 ```
 
-## Supported Languages and Frameworks
+## Install
 
-| Language | Frameworks |
-|----------|-----------|
-| JavaScript (`.js`, `.jsx`, `.mjs`, `.cjs`) | Jest, Vitest, Mocha |
-| TypeScript (`.ts`, `.tsx`, `.mts`) | Jest, Vitest, Mocha |
-| Python (`.py`) | pytest |
+No npm account needed — runs straight from GitHub:
 
-Framework is auto-detected from `package.json` dependencies, `vitest.config.*`, `jest.config.*`, `.mocharc.*`, `pytest.ini`, or `conftest.py`. Falls back to Jest (JS/TS) or pytest (Python).
+```bash
+npx github:NickCirv/test-gen src/utils.js
+```
 
-## Options
+## Usage
+
+```bash
+# generate tests to stdout
+npx github:NickCirv/test-gen src/utils.js
+
+# write directly to a test file
+npx github:NickCirv/test-gen src/api/user.ts --output tests/user.test.ts
+
+# override the detected framework
+npx github:NickCirv/test-gen app/services/payment.py --framework pytest
+```
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--output <path>` | Write tests to file instead of stdout | stdout |
-| `--framework <name>` | Override detected framework (`jest`, `vitest`, `mocha`, `pytest`) | auto-detect |
+| `--output <path>` | Write tests to a file instead of stdout | stdout |
+| `--framework <name>` | Override auto-detected framework (`jest`, `vitest`, `mocha`, `pytest`) | auto-detect |
+
+## How it works
+
+1. **Detect language** from the file extension (`.js`, `.ts`, `.tsx`, `.py`, etc.)
+2. **Detect framework** by walking up the directory tree — reads `package.json` dependencies, `vitest.config.*`, `jest.config.*`, `.mocharc.*`, `pytest.ini`, `conftest.py`
+3. **Extract exports** — named functions, arrow functions, classes and their methods; Python public functions and classes
+4. **Load existing tests** if a test file is already present — avoids regenerating covered cases
+5. **Generate with Claude Haiku** — sends source + export map + framework guidance; returns complete runnable test code
+
+## Supported languages and frameworks
+
+| Language | Extensions | Frameworks |
+|----------|-----------|-----------|
+| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | Jest, Vitest, Mocha |
+| TypeScript | `.ts`, `.tsx`, `.mts` | Jest, Vitest, Mocha |
+| Python | `.py` | pytest |
+
+Framework is auto-detected from project config files. Falls back to Jest (JS/TS) or pytest (Python) when no config is found.
 
 ## Requirements
 
 - Node.js 18+
-- `ANTHROPIC_API_KEY` environment variable set
+- `ANTHROPIC_API_KEY` environment variable
 
-## Install Globally
+## What it is NOT
 
-```bash
-npm i -g test-gen
-```
+- **Not a test runner.** It generates the file — you run it with your existing test setup.
+- **Not a replacement for understanding your code.** The output is a starting point: review it, fill in mocks for your specific dependencies, and extend it.
+- **Not zero-cost.** Every generation call uses Claude Haiku tokens — fast and cheap, but not free. Each file analysis typically costs a fraction of a cent.
 
-## License
+---
 
-MIT
+<div align="center">
+<sub>Node 18+ · MIT · by <a href="https://github.com/NickCirv">NickCirv</a></sub>
+</div>
