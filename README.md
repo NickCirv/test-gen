@@ -1,109 +1,67 @@
-![test-gen — AI-powered test generator for JS, TS, and Python. Point at a source file, get a complete runnable test suite.](assets/banner.png)
+![test-gen — Nicholas Ashkar repository collection](assets/nicholas-ashkar/banner.png)
 
-<div align="center">
+# test-gen
 
-**Point at a source file. Get a complete, runnable test suite — framework auto-detected, every export covered.**
+Analyze a JavaScript, TypeScript or Python source file and draft tests using Anthropic.
 
-![license](https://img.shields.io/badge/license-MIT-blue?labelColor=0B0A09)
-![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen?labelColor=0B0A09)
-![frameworks](https://img.shields.io/badge/frameworks-Jest%20%7C%20Vitest%20%7C%20Mocha%20%7C%20pytest-8B92F6?labelColor=0B0A09)
-![powered by](https://img.shields.io/badge/powered%20by-Claude%20Haiku-8B92F6?labelColor=0B0A09)
+> **Local repair candidate.** This checkout restores the missing CLI from source revision `9bc9f9a5ab6c7061bd7b7d2bdf2ec2eef4ce167b`. Offline behavior tests pass; live model generation remains unverified. Nothing here implies an upstream release. See [repair evidence](REPAIR-REPORT.md).
 
-</div>
+## Quickstart
 
----
-
-Writing tests is the task everyone knows matters but nobody wants to do. `test-gen` reads your source file, detects your test framework from `package.json` or config files, extracts every exported function and class method, and uses Claude Haiku to generate complete test suites — happy paths, edge cases, and error conditions included.
-
-No templates, no config, no placeholders. If a test file already exists, it loads it first and avoids generating duplicates. The output is copy-paste ready, or write it directly to a file with `--output`.
-
-```
-$ npx github:NickCirv/test-gen src/analyzer.js
-
-Detected: javascript / vitest
-
-Generated 87 lines of tests → tests/analyzer.test.js
-
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { detectLanguage, detectFramework, analyzeFile } from '../src/analyzer.js'
-
-describe('detectLanguage', () => {
-  it('returns javascript for .js files', () => {
-    expect(detectLanguage('app.js')).toBe('javascript')
-  })
-
-  it('returns typescript for .ts and .tsx files', () => {
-    expect(detectLanguage('index.ts')).toBe('typescript')
-    expect(detectLanguage('Component.tsx')).toBe('typescript')
-  })
-
-  it('returns python for .py files', () => {
-    expect(detectLanguage('main.py')).toBe('python')
-  })
-
-  it('returns null for unsupported extensions', () => {
-    expect(detectLanguage('style.css')).toBeNull()
-  })
-})
-```
-
-## Install
-
-No npm account needed — runs straight from GitHub:
+Use Node.js 20 or later. Begin with local analysis from this candidate checkout:
 
 ```bash
-npx github:NickCirv/test-gen src/utils.js
+npm install --ignore-scripts --no-audit --no-fund
+node bin/gen.js --help
+node bin/gen.js /absolute/path/to/source.js --dry-run
 ```
 
-## Usage
+Dry-run reads the source and nearby configuration, prints a JSON plan, and makes no API call or file write. It works without an API key. Help and dry-run were exercised as real CLI subprocesses using temporary fixtures.
+
+## Draft tests
+
+Generation requires `ANTHROPIC_API_KEY` in the environment. It sends the complete selected source, extracted symbols/imports to Anthropic. The CLI does not read or replace an existing test file. The inherited generator requests `claude-haiku-4-5`; model availability and live responses were not checked.
 
 ```bash
-# generate tests to stdout
-npx github:NickCirv/test-gen src/utils.js
-
-# write directly to a test file
-npx github:NickCirv/test-gen src/api/user.ts --output tests/user.test.ts
-
-# override the detected framework
-npx github:NickCirv/test-gen app/services/payment.py --framework pytest
+# Model-backed examples: not executed in this repair review.
+node bin/gen.js /absolute/path/to/source.js
+node bin/gen.js /absolute/path/to/source.js --output /absolute/path/to/source.test.js
 ```
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--output <path>` | Write tests to a file instead of stdout | stdout |
-| `--framework <name>` | Override auto-detected framework (`jest`, `vitest`, `mocha`, `pytest`) | auto-detect |
+By default the generated code is printed to stdout. With `--output`, the parent directory must exist. The output path must be new: existing files are always refused, and there is no `--force` mode. Generate a separate draft and merge reviewed assertions manually so existing tests are preserved. Review generated assertions and imports before running the result in your test environment.
 
-## How it works
+## Command reference
 
-1. **Detect language** from the file extension (`.js`, `.ts`, `.tsx`, `.py`, etc.)
-2. **Detect framework** by walking up the directory tree — reads `package.json` dependencies, `vitest.config.*`, `jest.config.*`, `.mocharc.*`, `pytest.ini`, `conftest.py`
-3. **Extract exports** — named functions, arrow functions, classes and their methods; Python public functions and classes
-4. **Load existing tests** if a test file is already present — avoids regenerating covered cases
-5. **Generate with Claude Haiku** — sends source + export map + framework guidance; returns complete runnable test code
+| Option | Purpose | Default |
+| --- | --- | --- |
+| `--dry-run` | Analyze and print a plan, offline and without writes | Off |
+| `--framework NAME` | Select `jest`, `vitest`, `mocha`, or `pytest` | Detected, then Jest for JS/TS or pytest for Python |
+| `--output PATH`, `-o PATH` | Write the draft to a file | stdout |
+| `--help` | Show help without generation | No arguments also show help |
 
-## Supported languages and frameworks
+Python requires pytest; JS/TS accept Jest, Vitest or Mocha. Invalid arguments, unsupported files/framework combinations, provider errors and empty responses return a nonzero status. Output cannot be an existing file, the source file, a symlink or a directory. Exclusive creation also refuses a path that appears while generation is in progress.
 
-| Language | Extensions | Frameworks |
-|----------|-----------|-----------|
-| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | Jest, Vitest, Mocha |
-| TypeScript | `.ts`, `.tsx`, `.mts` | Jest, Vitest, Mocha |
-| Python | `.py` | pytest |
+## Analysis and limits
 
-Framework is auto-detected from project config files. Falls back to Jest (JS/TS) or pytest (Python) when no config is found.
+The analyzer uses regular expressions for exports and imports; it is not a full parser and can miss or misidentify symbols. Framework detection searches nearby manifests/configuration rather than proving an installed runner works. The lower-level generator retains an optional existing-test context argument, but the CLI does not use it: generated drafts are separate files and no merge or deduplication guarantee is made.
 
-## Requirements
+Generated output is untrusted draft code. It is neither executed nor syntax-checked by this CLI, and a successful request does not establish passing tests, complete coverage or correct behavior. The prompt's import-path guidance is heuristic. No current API pricing or model compatibility claim is made.
 
-- Node.js 18+
-- `ANTHROPIC_API_KEY` environment variable
+## Development and verification
 
-## What it is NOT
+```bash
+npm test
+```
 
-- **Not a test runner.** It generates the file — you run it with your existing test setup.
-- **Not a replacement for understanding your code.** The output is a starting point: review it, fill in mocks for your specific dependencies, and extend it.
-- **Not zero-cost.** Every generation call uses Claude Haiku tokens — fast and cheap, but not free. Each file analysis typically costs a fraction of a cent.
+Nine tests passed on Node.js 26.7.0. They cover real help/dry-run startup without credentials, source analysis, mocked SDK generation, fresh file output and preservation of existing tests, invalid input, provider/empty-response failures, and an output path appearing during generation. Every generation test uses injected mocks; no live Anthropic call or generated-test suite was executed. Node 20 and other platforms remain untested.
 
----
+## License and author
 
-<div align="center">
-<sub>Node 18+ · MIT · by <a href="https://github.com/NickCirv">NickCirv</a></sub>
-</div>
+[MIT license](LICENSE). [Nicholas Ashkar](https://nicholashkar.com#oxblood-contact) — applied AI, systems and consulting.
+
+<a id="install"></a>
+<a id="usage"></a>
+<a id="how-it-works"></a>
+<a id="supported-languages-and-frameworks"></a>
+<a id="requirements"></a>
+<a id="what-it-is-not"></a>

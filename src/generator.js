@@ -2,7 +2,6 @@ import Anthropic from '@anthropic-ai/sdk'
 import { readFile, access } from 'fs/promises'
 import { join, dirname, basename, extname } from 'path'
 
-const client = new Anthropic()
 
 const FRAMEWORK_IMPORTS = {
   jest: {
@@ -131,11 +130,12 @@ function extractCodeBlock(text, language) {
 /**
  * Generate tests for a file using Claude
  */
-export async function generateTests(analysis, existingTestPath) {
+export async function generateTests(analysis, existingTestPath, { client } = {}) {
   const existingTests = existingTestPath ? await loadExistingTests(existingTestPath) : null
   const prompt = buildPrompt(analysis, existingTests)
 
-  const message = await client.messages.create({
+  const api = client ?? new Anthropic()
+  const message = await api.messages.create({
     model: 'claude-haiku-4-5',
     max_tokens: 4096,
     messages: [
