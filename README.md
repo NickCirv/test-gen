@@ -4,11 +4,9 @@
 
 Analyze a JavaScript, TypeScript or Python source file and draft tests using Anthropic.
 
-> **Local repair candidate.** This checkout restores the missing CLI from source revision `9bc9f9a5ab6c7061bd7b7d2bdf2ec2eef4ce167b`. Offline behavior tests pass; live model generation remains unverified. Nothing here implies an upstream release. See [repair evidence](REPAIR-REPORT.md).
-
 ## Quickstart
 
-Use Node.js 20 or later. Begin with local analysis from this candidate checkout:
+Use Node.js 20 or later. Begin with local analysis:
 
 ```bash
 npm install --ignore-scripts --no-audit --no-fund
@@ -20,10 +18,10 @@ Dry-run reads the source and nearby configuration, prints a JSON plan, and makes
 
 ## Draft tests
 
-Generation requires `ANTHROPIC_API_KEY` in the environment. It sends the complete selected source, extracted symbols/imports to Anthropic. The CLI does not read or replace an existing test file. The inherited generator requests `claude-haiku-4-5`; model availability and live responses were not checked.
+Generation requires `ANTHROPIC_API_KEY` in the environment. It sends the complete selected source, extracted symbols/imports to Anthropic. The CLI does not read or replace an existing test file. The generator requests `claude-haiku-4-5`; the offline test suite exercises generation through injected mocks, so live model availability is not covered by `npm test`.
 
 ```bash
-# Model-backed examples: not executed in this repair review.
+# Model-backed examples: these call the Anthropic API.
 node bin/gen.js /absolute/path/to/source.js
 node bin/gen.js /absolute/path/to/source.js --output /absolute/path/to/source.test.js
 ```
@@ -53,11 +51,13 @@ Generated output is untrusted draft code. It is neither executed nor syntax-chec
 npm test
 ```
 
-Nine tests passed on Node.js 26.7.0. They cover real help/dry-run startup without credentials, source analysis, mocked SDK generation, fresh file output and preservation of existing tests, invalid input, provider/empty-response failures, and an output path appearing during generation. Every generation test uses injected mocks; no live Anthropic call or generated-test suite was executed. Node 20 and other platforms remain untested.
+Nine tests pass on Node.js 26.7.0 locally, and CI runs the same suite on Node.js 20 and 22 (passing at the current revision). They cover real help/dry-run startup without credentials, source analysis, mocked SDK generation, fresh file output and preservation of existing tests, invalid input, provider/empty-response failures, and an output path appearing during generation. Every generation test uses injected mocks; no live Anthropic call or generated-test suite is executed.
 
 ## License and author
 
 [MIT license](LICENSE). [Nicholas Ashkar](https://nicholashkar.com#oxblood-contact) — applied AI, systems and consulting.
+
+Provenance: this CLI was restored from captured source revision `9bc9f9a` and the repair shipped here on 2026-09-22; the record lives in [REPAIR-REPORT.md](REPAIR-REPORT.md) and [SOURCE-REVISION.json](SOURCE-REVISION.json).
 
 <a id="install"></a>
 <a id="usage"></a>

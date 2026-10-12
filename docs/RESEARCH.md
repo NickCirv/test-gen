@@ -17,7 +17,7 @@ This review read captured implementation and documentation. It did not install d
 
 ## Findings and verification gaps
 
-The published tree contains no src/index.js, so historical CLI examples cannot work as written. The smoke test only syntax-checks bin/gen.js and does not resolve its dynamic import, so it misses this blocker. Generated tests would still require review, execution and meaningful assertions; a model request is not evidence of coverage. No code repair was made in this documentation overlay.
+The pinned tree contained no src/index.js, so the CLI examples could not work as written at that revision; the missing module shipped in this repository on 2026-09-22 (see [REPAIR-REPORT.md](../REPAIR-REPORT.md)). The pinned smoke test only syntax-checked bin/gen.js and did not resolve its dynamic import, so it missed this blocker. Generated tests would still require review, execution and meaningful assertions; a model request is not evidence of coverage.
 
 The captured smoke test only asks Node to syntax-check the entrypoint. It does not exercise behavior, integrations or failure paths. Neither that test nor installation was run in this review.
 
